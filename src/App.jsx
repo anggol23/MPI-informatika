@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Home,
   Lightbulb,
@@ -15,6 +15,8 @@ import {
   ArrowLeft,
   Volume2,
   VolumeX,
+  Maximize,
+  Minimize,
   Monitor,
   Cpu,
   Layers,
@@ -66,6 +68,28 @@ export default function App() {
   // 13: Urutkan Proses, 14: Booting, 15: Kasus 2, 16: Evaluasi, 17: Rangkuman, 18: Pustaka
   const [currentScene, setCurrentScene] = useState(1);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (soundEnabled) playTone("click");
+    if (!document.fullscreenElement) {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+  };
 
   const goTo = (sceneNo) => {
     if (soundEnabled) playTone("click");
@@ -79,15 +103,31 @@ export default function App() {
       <BackgroundTechCircuit />
       <FloatingBubbles />
 
-      {/* 2. KONTROL AUDIO (POJOK KANAN ATAS) */}
-      <div className="absolute top-3 right-3 z-50">
+      {/* 2. KONTROL AUDIO & FULLSCREEN (POJOK KANAN ATAS) */}
+      <div className="absolute top-3 right-3 z-50 flex items-center gap-2">
+        {/* FULLSCREEN TOGGLE */}
+        <button
+          onClick={toggleFullscreen}
+          aria-label="Toggle Fullscreen"
+          title={isFullscreen ? "Keluar Layar Penuh (Esc)" : "Mode Layar Penuh"}
+          className="p-2.5 rounded-full bg-white/90 border-2 border-cyan-400 shadow-md text-cyan-700 hover:scale-105 active:scale-95 transition flex items-center justify-center backdrop-blur-sm cursor-pointer"
+        >
+          {isFullscreen ? (
+            <Minimize className="w-4 h-4 text-cyan-600" />
+          ) : (
+            <Maximize className="w-4 h-4 text-cyan-600" />
+          )}
+        </button>
+
+        {/* AUDIO TOGGLE */}
         <button
           onClick={() => {
             setSoundEnabled(!soundEnabled);
             if (!soundEnabled) playTone("click");
           }}
           aria-label="Toggle Audio"
-          className="p-2.5 rounded-full bg-white/90 border-2 border-cyan-400 shadow-md text-cyan-700 hover:scale-105 active:scale-95 transition flex items-center justify-center backdrop-blur-sm"
+          title={soundEnabled ? "Matikan Suara" : "Nyalakan Suara"}
+          className="p-2.5 rounded-full bg-white/90 border-2 border-cyan-400 shadow-md text-cyan-700 hover:scale-105 active:scale-95 transition flex items-center justify-center backdrop-blur-sm cursor-pointer"
         >
           {soundEnabled ? (
             <Volume2 className="w-4 h-4 text-cyan-600" />
