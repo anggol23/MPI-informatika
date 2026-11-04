@@ -1743,10 +1743,18 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
 
 function Scene8Kasus1({ onPrev, onNext, onHome, sound }) {
   const [ans, setAns] = useState(null);
-  const handleAns = (val) => {
-    setAns(val);
-    if (sound) playTone(val === "B" ? "success" : "error");
+  const handleAns = (op) => {
+    setAns(op.id);
+    if (sound) playTone(op.ok ? "success" : "error");
   };
+
+  const options = [
+    { id: "A", t: "A. Kerusakan fisik pada layar monitor komputer", ok: false },
+    { id: "B", t: "B. Masalah pada software / file instalasi aplikasi", ok: true },
+    { id: "C", t: "C. Kabel stopkontak listrik CPU terlepas", ok: false },
+    { id: "D", t: "D. Gangguan koneksi kabel pada perangkat keyboard", ok: false },
+    { id: "E", t: "E. Kerusakan pada perangkat output speaker suara", ok: false },
+  ];
 
   return (
     <div className="scene-card-wrapper relative z-10 flex flex-col justify-between h-full max-h-full overflow-hidden">
@@ -1755,23 +1763,19 @@ function Scene8Kasus1({ onPrev, onNext, onHome, sound }) {
         <PinkTitleBadge title="Studi Kasus 1" />
       </div>
 
-      <div className="bg-white rounded-[28px] border-4 border-cyan-400 p-4 sm:p-5 shadow-xl max-w-2xl mx-auto w-full mb-2 flex-1 min-h-0 overflow-y-auto my-auto flex flex-col justify-center">
-        <div className="p-3.5 rounded-2xl bg-cyan-50 border-2 border-cyan-200 mb-4">
+      <div className="bg-white rounded-[28px] border-4 border-cyan-400 p-3.5 sm:p-5 shadow-xl max-w-2xl mx-auto w-full mb-2 flex-1 min-h-0 overflow-y-auto my-auto flex flex-col justify-center">
+        <div className="p-3 rounded-2xl bg-cyan-50 border-2 border-cyan-200 mb-3">
           <p className="text-xs sm:text-sm font-extrabold text-slate-800 leading-relaxed">
             🔍 <strong>Kasus:</strong> Layar komputer menyala normal, mouse bisa digerakkan, tetapi ketika aplikasi pengolah kata diklik, program gagal terbuka. Bagian apa yang paling tepat diperiksa lebih dulu?
           </p>
         </div>
 
-        <div className="space-y-2.5">
-          {[
-            { id: "A", t: "A. Monitor komputer rusak", ok: false },
-            { id: "B", t: "B. Masalah pada software / aplikasi", ok: true },
-            { id: "C", t: "C. Kabel keyboard terlepas", ok: false },
-          ].map((op) => (
+        <div className="space-y-1.5 sm:space-y-2">
+          {options.map((op) => (
             <button
               key={op.id}
-              onClick={() => handleAns(op.id)}
-              className={`w-full p-3.5 rounded-2xl border-2 text-left font-black text-xs sm:text-sm transition flex items-center justify-between font-display ${
+              onClick={() => handleAns(op)}
+              className={`w-full p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border-2 text-left font-black text-xs sm:text-sm transition flex items-center justify-between font-display ${
                 ans === op.id
                   ? op.ok
                     ? "bg-emerald-100 border-emerald-500 text-emerald-900"
@@ -1780,13 +1784,13 @@ function Scene8Kasus1({ onPrev, onNext, onHome, sound }) {
               }`}
             >
               <span>{op.t}</span>
-              {ans === op.id && (op.ok ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <XCircle className="w-4 h-4 text-red-600" />)}
+              {ans === op.id && (op.ok ? <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 ml-1" /> : <XCircle className="w-4 h-4 text-red-600 shrink-0 ml-1" />)}
             </button>
           ))}
         </div>
 
         {ans && (
-          <div className="mt-3 p-3 rounded-xl bg-slate-100 text-xs font-bold text-slate-700">
+          <div className="mt-2.5 p-2.5 sm:p-3 rounded-xl bg-slate-100 text-xs font-bold text-slate-700">
             💡 <strong>Penjelasan:</strong> Komputer menyala dan desktop tampil normal membuktikan hardware bekerja baik. Kegagalan membuka aplikasi adalah kendala pada sisi <strong>Software</strong>.
           </div>
         )}
@@ -2589,6 +2593,19 @@ function Scene14Booting({ onPrev, onNext, onHome, sound }) {
 
 function Scene15Kasus2({ onPrev, onNext, onHome, sound }) {
   const [ans, setAns] = useState(null);
+  const handleAns = (op) => {
+    setAns(op.id);
+    if (sound) playTone(op.ok ? "success" : "error");
+  };
+
+  const options = [
+    { id: "A", t: "A. Kapasitas RAM penuh dan CPU kewalahan memproses data", ok: true },
+    { id: "B", t: "B. Ukuran fisik layar monitor tiba-tiba mengecil", ok: false },
+    { id: "C", t: "C. Perangkat keras keyboard kehabisan tinta digital", ok: false },
+    { id: "D", t: "D. Kabel daya listrik PLN mengirimkan arus terlalu dingin", ok: false },
+    { id: "E", t: "E. Tombol power pada casing CPU mati separuh", ok: false },
+  ];
+
   return (
     <div className="scene-card-wrapper relative z-10 flex flex-col justify-between h-full max-h-full overflow-hidden">
       <div className="relative flex items-center justify-center mb-2 shrink-0">
@@ -2596,27 +2613,37 @@ function Scene15Kasus2({ onPrev, onNext, onHome, sound }) {
         <PinkTitleBadge title="Studi Kasus 2" />
       </div>
 
-      <div className="bg-white rounded-[28px] border-4 border-cyan-400 p-4 sm:p-5 shadow-xl max-w-xl mx-auto w-full mb-2 flex-1 min-h-0 overflow-y-auto my-auto flex flex-col justify-center">
-        <p className="text-xs sm:text-sm font-extrabold text-slate-800 mb-3 leading-relaxed">
-          Mengapa komputer tiba-tiba menjadi lambat saat membuka puluhan tab browser sekaligus?
-        </p>
-        <div className="space-y-2">
-          {[
-            { id: "A", t: "A. Kapasitas RAM penuh dan CPU kewalahan", ok: true },
-            { id: "B", t: "B. Ukuran monitor berubah mengecil", ok: false },
-            { id: "C", t: "C. Keyboard kehabisan tinta", ok: false },
-          ].map((op) => (
+      <div className="bg-white rounded-[28px] border-4 border-cyan-400 p-3.5 sm:p-5 shadow-xl max-w-2xl mx-auto w-full mb-2 flex-1 min-h-0 overflow-y-auto my-auto flex flex-col justify-center">
+        <div className="p-3 rounded-2xl bg-cyan-50 border-2 border-cyan-200 mb-3">
+          <p className="text-xs sm:text-sm font-extrabold text-slate-800 leading-relaxed">
+            🔍 <strong>Kasus:</strong> Mengapa komputer tiba-tiba menjadi lambat dan patah-patah saat kamu membuka puluhan tab browser internet sekaligus?
+          </p>
+        </div>
+
+        <div className="space-y-1.5 sm:space-y-2">
+          {options.map((op) => (
             <button
               key={op.id}
-              onClick={() => { setAns(op.id); if (sound) playTone(op.ok ? "success" : "error"); }}
-              className={`w-full p-3 rounded-2xl border-2 text-left font-black text-xs sm:text-sm font-display transition ${
-                ans === op.id ? (op.ok ? "bg-emerald-100 border-emerald-500 text-emerald-900" : "bg-red-100 border-red-500 text-red-900") : "bg-slate-50 border-slate-200 hover:border-cyan-400"
+              onClick={() => handleAns(op)}
+              className={`w-full p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border-2 text-left font-black text-xs sm:text-sm transition flex items-center justify-between font-display ${
+                ans === op.id
+                  ? op.ok
+                    ? "bg-emerald-100 border-emerald-500 text-emerald-900"
+                    : "bg-red-100 border-red-500 text-red-900"
+                  : "bg-slate-50 border-slate-200 hover:border-cyan-400 text-slate-800"
               }`}
             >
-              {op.t}
+              <span>{op.t}</span>
+              {ans === op.id && (op.ok ? <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 ml-1" /> : <XCircle className="w-4 h-4 text-red-600 shrink-0 ml-1" />)}
             </button>
           ))}
         </div>
+
+        {ans && (
+          <div className="mt-2.5 p-2.5 sm:p-3 rounded-xl bg-slate-100 text-xs font-bold text-slate-700">
+            💡 <strong>Penjelasan:</strong> Setiap tab browser yang dibuka memakai memori <strong>RAM</strong> untuk menampung data sementara dan membutuhkan <strong>CPU</strong> untuk memproses rendering web. Membuka terlalu banyak tab menyebabkan RAM penuh dan CPU kewalahan!
+          </div>
+        )}
       </div>
 
       <BottomNav onPrev={onPrev} onHome={onHome} onNext={onNext} />
