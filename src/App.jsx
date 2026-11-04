@@ -17,6 +17,7 @@ import {
   VolumeX,
   Maximize,
   Minimize,
+  Download,
   Monitor,
   Cpu,
   Layers,
@@ -69,6 +70,8 @@ export default function App() {
   const [currentScene, setCurrentScene] = useState(1);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [canInstall, setCanInstall] = useState(false);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -77,6 +80,32 @@ export default function App() {
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
+
+  // Tangkap event PWA install prompt
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setCanInstall(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    if (soundEnabled) playTone("click");
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      setCanInstall(false);
+      setDeferredPrompt(null);
+    }
+  };
 
   const toggleFullscreen = () => {
     if (soundEnabled) playTone("click");
@@ -103,8 +132,21 @@ export default function App() {
       <BackgroundTechCircuit />
       <FloatingBubbles />
 
-      {/* 2. KONTROL AUDIO & FULLSCREEN (POJOK KANAN ATAS) */}
+      {/* 2. KONTROL AUDIO, FULLSCREEN & PWA INSTALL (POJOK KANAN ATAS) */}
       <div className="absolute top-3 right-3 z-50 flex items-center gap-2">
+        {/* TOMBOL PWA INSTALL (JIKA PERANGKAT MENDUKUNG INSTALLASI) */}
+        {canInstall && (
+          <button
+            onClick={handleInstallClick}
+            aria-label="Install Aplikasi"
+            title="Install Aplikasi ke Komputer / HP"
+            className="px-3 py-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 border-2 border-white text-white font-black text-xs shadow-md hover:scale-105 active:scale-95 transition flex items-center gap-1.5 font-display animate-pulse cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+            <span className="hidden sm:inline">Install App</span>
+          </button>
+        )}
+
         {/* FULLSCREEN TOGGLE */}
         <button
           onClick={toggleFullscreen}
