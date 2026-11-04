@@ -150,7 +150,7 @@ export default function App() {
         {currentScene === 9 && <Scene9Refleksi onPrev={() => goTo(8)} onHome={() => goTo(2)} onNext={() => goTo(10)} />}
         {currentScene === 10 && <Scene10Pemantik2 onPrev={() => goTo(9)} onHome={() => goTo(2)} onNext={() => goTo(11)} sound={soundEnabled} />}
         {currentScene === 11 && <Scene11AlurKerja onPrev={() => goTo(10)} onHome={() => goTo(2)} onNext={() => goTo(12)} sound={soundEnabled} />}
-        {currentScene === 12 && <Scene12Peran onPrev={() => goTo(11)} onHome={() => goTo(2)} onNext={() => goTo(13)} />}
+        {currentScene === 12 && <Scene12Peran onPrev={() => goTo(11)} onHome={() => goTo(2)} onNext={() => goTo(13)} sound={soundEnabled} />}
         {currentScene === 13 && <Scene13Urutan onPrev={() => goTo(12)} onHome={() => goTo(2)} onNext={() => goTo(14)} sound={soundEnabled} />}
         {currentScene === 14 && <Scene14Booting onPrev={() => goTo(13)} onHome={() => goTo(2)} onNext={() => goTo(15)} sound={soundEnabled} />}
         {currentScene === 15 && <Scene15Kasus2 onPrev={() => goTo(14)} onHome={() => goTo(2)} onNext={() => goTo(16)} sound={soundEnabled} />}
@@ -2202,36 +2202,166 @@ function Scene11AlurKerja({ onPrev, onNext, onHome, sound }) {
   );
 }
 
-function Scene12Peran({ onPrev, onNext, onHome }) {
-  const data = [
-    { n: "CPU (Processor)", a: "👨🍳 Koki Masak", d: "Menghitung dan mengeksekusi semua perintah secara instan.", col: "border-purple-400" },
-    { n: "RAM (Memory)", a: "🍽️ Meja Dapur", d: "Tempat meletakkan bahan yang sedang dimasak sementara.", col: "border-cyan-400" },
-    { n: "Storage (SSD/HDD)", a: "🧊 Kulkas / Lemari", d: "Menyimpan resep & bahan makanan secara permanen.", col: "border-amber-400" },
+function UsbFlashdiskArt() {
+  return (
+    <svg className="w-12 h-12 drop-shadow-md shrink-0" viewBox="0 0 100 100" fill="none">
+      <rect x="36" y="8" width="28" height="22" rx="3" fill="#cbd5e1" stroke="#475569" strokeWidth="3" />
+      <rect x="42" y="13" width="5" height="9" rx="1" fill="#475569" />
+      <rect x="53" y="13" width="5" height="9" rx="1" fill="#475569" />
+      <rect x="24" y="28" width="52" height="64" rx="12" fill="url(#usbGrad)" stroke="#0284c7" strokeWidth="4" />
+      <circle cx="50" cy="76" r="5" fill="#ffffff" opacity="0.8" />
+      <line x1="34" y1="42" x2="66" y2="42" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" opacity="0.6" />
+      <text x="50" y="59" textAnchor="middle" fill="#ffffff" fontSize="12" fontWeight="900" fontFamily="sans-serif">16 GB</text>
+      <defs>
+        <linearGradient id="usbGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#0284c7" />
+          <stop offset="100%" stopColor="#0ea5e9" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
+function Scene12Peran({ onPrev, onNext, onHome, sound }) {
+  const [ans, setAns] = useState(null);
+
+  const handleAns = (op) => {
+    setAns(op.id);
+    if (sound) playTone(op.ok ? "success" : "error");
+  };
+
+  const options = [
+    { id: "A", t: "A. Cukup, masih tersisa ruang 2.400 MB (2,4 GB)", ok: true },
+    { id: "B", t: "B. Cukup, masih tersisa ruang 4.000 MB (4,0 GB)", ok: false },
+    { id: "C", t: "C. Tidak cukup, kapasitas kurang 1.600 MB", ok: false },
+    { id: "D", t: "D. Tidak cukup, kapasitas kurang 2.400 MB", ok: false },
+    { id: "E", t: "E. Tepat habis tanpa sisa ruang sama sekali", ok: false },
   ];
 
   return (
     <div className="scene-card-wrapper relative z-10 flex flex-col justify-between h-full max-h-full overflow-hidden">
+      {/* HEADER BAR */}
       <div className="relative flex items-center justify-center mb-2 shrink-0">
         <div className="absolute left-0"><WhiteBerandaBtn onClick={onHome} /></div>
-        <PinkTitleBadge title="CPU, RAM & Storage" />
+        <PinkTitleBadge title="Tantangan Numerasi: Kapasitas Data" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2 flex-1 min-h-0 overflow-y-auto my-auto py-1">
-        {data.map((item) => (
-          <div key={item.n} className={`bg-white rounded-[28px] border-[4px] ${item.col} p-5 shadow-xl text-center flex flex-col justify-between`}>
-            <div>
-              <div className="inline-block px-3 py-0.5 rounded-full bg-slate-100 text-xs font-black text-slate-800 mb-2 font-display">
-                Analogi: {item.a}
+      {/* 2-COLUMN GRID KONTEN SOAL NUMERASI */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 mb-2 flex-1 min-h-0 overflow-y-auto my-auto py-1">
+        
+        {/* KOLOM KIRI: INFOGRAFIS KASUS NYATA & INDIKATOR MEMORI */}
+        <div className="lg:col-span-5 bg-gradient-to-b from-white to-cyan-50/60 rounded-[28px] border-4 border-cyan-400 p-3.5 sm:p-4 shadow-xl flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-2.5 pb-2 border-b-2 border-cyan-100">
+              <UsbFlashdiskArt />
+              <div>
+                <span className="text-[10px] font-black text-cyan-800 bg-cyan-100 px-2.5 py-0.5 rounded-full border border-cyan-300 font-display">
+                  📊 Problem Solving • Storage
+                </span>
+                <h3 className="text-sm sm:text-base font-black text-slate-800 font-display mt-0.5">
+                  Kapasitas Flashdisk Rian
+                </h3>
               </div>
-              <h4 className="text-lg font-black text-slate-800 mb-1 font-display">{item.n}</h4>
-              <p className="text-xs sm:text-sm text-slate-600 font-extrabold leading-relaxed">
-                {item.d}
+            </div>
+
+            <div className="bg-white p-3 rounded-2xl border border-cyan-200 shadow-xs space-y-1.5 text-xs font-bold text-slate-700 leading-relaxed">
+              <p>
+                Rian memiliki Flashdisk baru berkapasitas <strong>16 GB</strong> <em>(1 GB = 1.000 MB)</em>. Sebanyak <strong>4.000 MB</strong> telah terisi file dokumen sekolah.
               </p>
+              <p>
+                Rian ingin menyimpan <strong>8 file video dokumenter Informatika</strong>, di mana masing-masing video berukuran <strong>1.200 MB</strong>.
+              </p>
+              <div className="p-2 bg-amber-50 rounded-xl border border-amber-300 text-amber-950 font-black text-xs">
+                ❓ Apakah kapasitas sisa flashdisk mencukupi, dan berapakah sisa ruang akhirnya?
+              </div>
             </div>
           </div>
-        ))}
+
+          {/* VISUAL DIAGRAM BAR KAPASITAS STORAGE */}
+          <div className="mt-3 bg-white p-2.5 rounded-2xl border border-slate-200 shadow-xs">
+            <div className="flex justify-between items-center text-[10px] font-black text-slate-700 mb-1">
+              <span>Alokasi Ruang (Total: 16.000 MB)</span>
+              <span className="text-cyan-700 font-mono">16 GB</span>
+            </div>
+            
+            {/* MULTI-SEGMENT PROGRESS BAR */}
+            <div className="w-full h-4 bg-slate-200 rounded-full overflow-hidden flex shadow-inner">
+              <div className="h-full bg-amber-500 text-[8px] font-black text-white flex items-center justify-center" style={{ width: "25%" }} title="Tugas: 4.000 MB (25%)">
+                25%
+              </div>
+              <div className="h-full bg-purple-500 text-[8px] font-black text-white flex items-center justify-center" style={{ width: "60%" }} title="Video: 9.600 MB (60%)">
+                60%
+              </div>
+              <div className="h-full bg-emerald-500 text-[8px] font-black text-white flex items-center justify-center animate-pulse" style={{ width: "15%" }} title="Sisa Ruang: 2.400 MB (15%)">
+                15%
+              </div>
+            </div>
+
+            {/* LEGEND BADGES */}
+            <div className="grid grid-cols-3 gap-1 mt-1.5 text-[9px] font-bold text-slate-600 text-center">
+              <span className="flex items-center justify-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span> Tugas: 4.000 MB
+              </span>
+              <span className="flex items-center justify-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-purple-500 shrink-0"></span> 8 Video: 9.600 MB
+              </span>
+              <span className="flex items-center justify-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span> Sisa Ruang: ?
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* KOLOM KANAN: PILIHAN GANDA (A SAMPAI E) & PEMBAHASAN */}
+        <div className="lg:col-span-7 bg-white rounded-[28px] border-4 border-cyan-400 p-3.5 sm:p-4 shadow-xl flex flex-col justify-between">
+          <div>
+            <h4 className="text-xs sm:text-sm font-black text-slate-800 mb-2 font-display flex items-center gap-1.5">
+              <span>✍️</span> Pilih Jawaban yang Paling Tepat:
+            </h4>
+
+            <div className="space-y-1.5 sm:space-y-2">
+              {options.map((op) => (
+                <button
+                  key={op.id}
+                  onClick={() => handleAns(op)}
+                  className={`w-full p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border-2 text-left font-black text-xs sm:text-sm transition flex items-center justify-between font-display ${
+                    ans === op.id
+                      ? op.ok
+                        ? "bg-emerald-100 border-emerald-500 text-emerald-900"
+                        : "bg-red-100 border-red-500 text-red-900"
+                      : "bg-slate-50 border-slate-200 hover:border-cyan-400 text-slate-800"
+                  }`}
+                >
+                  <span>{op.t}</span>
+                  {ans === op.id && (op.ok ? <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 ml-1" /> : <XCircle className="w-4 h-4 text-red-600 shrink-0 ml-1" />)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* PEMBAHASAN MATEMATIS NUMERASI */}
+          {ans && (
+            <div className="mt-2.5 p-3 rounded-2xl bg-cyan-50 border-2 border-cyan-300 text-slate-800 animate-fade-in shadow-xs">
+              <div className="flex items-center gap-1.5 text-xs font-black text-cyan-900 font-display mb-1">
+                <span>💡</span>
+                <span>Langkah Penyelesaian Numerasi:</span>
+              </div>
+              <div className="space-y-0.5 text-[11px] font-bold text-slate-700 leading-snug font-sans">
+                <p>1. <strong>Total Kapasitas:</strong> 16 GB × 1.000 MB = <strong>16.000 MB</strong>.</p>
+                <p>2. <strong>Sisa Awal:</strong> 16.000 MB - 4.000 MB = <strong>12.000 MB</strong>.</p>
+                <p>3. <strong>Kebutuhan 8 File Video:</strong> 8 × 1.200 MB = <strong>9.600 MB</strong>.</p>
+                <p>4. <strong>Sisa Akhir Penyimpanan:</strong> 12.000 MB - 9.600 MB = <strong className="text-emerald-700">2.400 MB (2,4 GB)</strong>.</p>
+                <p className="text-emerald-800 font-black mt-1">
+                  🎉 <strong>Kesimpulan:</strong> Kapasitas flashdisk <strong>CUKUP</strong>, dan masih tersisa ruang kosong sebesar <strong>2.400 MB (2,4 GB)</strong>.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
       </div>
 
+      {/* NAVIGASI BAWAH SIRKUIT */}
       <BottomNav onPrev={onPrev} onHome={onHome} onNext={onNext} />
     </div>
   );
