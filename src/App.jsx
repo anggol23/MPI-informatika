@@ -1795,7 +1795,6 @@ function Scene8Kasus1({ onPrev, onNext, onHome, sound }) {
     { id: "B", t: "B. Masalah pada software / file instalasi aplikasi", ok: true },
     { id: "C", t: "C. Kabel stopkontak listrik CPU terlepas", ok: false },
     { id: "D", t: "D. Gangguan koneksi kabel pada perangkat keyboard", ok: false },
-    { id: "E", t: "E. Kerusakan pada perangkat output speaker suara", ok: false },
   ];
 
   return (
@@ -2277,7 +2276,6 @@ function Scene12Peran({ onPrev, onNext, onHome, sound }) {
     { id: "B", t: "B. Cukup, masih tersisa ruang 4.000 MB (4,0 GB)", ok: false },
     { id: "C", t: "C. Tidak cukup, kapasitas kurang 1.600 MB", ok: false },
     { id: "D", t: "D. Tidak cukup, kapasitas kurang 2.400 MB", ok: false },
-    { id: "E", t: "E. Tepat habis tanpa sisa ruang sama sekali", ok: false },
   ];
 
   return (
@@ -2775,7 +2773,6 @@ function Scene15Kasus2({ onPrev, onNext, onHome, sound }) {
     { id: "B", t: "B. Ukuran fisik layar monitor tiba-tiba mengecil", ok: false },
     { id: "C", t: "C. Perangkat keras keyboard kehabisan tinta digital", ok: false },
     { id: "D", t: "D. Kabel daya listrik PLN mengirimkan arus terlalu dingin", ok: false },
-    { id: "E", t: "E. Tombol power pada casing CPU mati separuh", ok: false },
   ];
 
   return (
