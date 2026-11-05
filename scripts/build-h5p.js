@@ -28,7 +28,7 @@ if (fs.existsSync(stagingDir)) {
 }
 fs.mkdirSync(stagingDir, { recursive: true });
 
-// 3. Buat file h5p.json utama
+// 3. Buat file h5p.json utama (sesuai schema validasi H5P Core / Lumi)
 const h5pManifest = {
   title: "Media Pembelajaran Informatika - Sistem Komputer",
   language: "id",
@@ -41,8 +41,14 @@ const h5pManifest = {
     }
   ],
   embedTypes: ["iframe"],
-  license: "CC BY 4.0",
-  author: "Informatika Media Team"
+  license: "CC BY",
+  licenseVersion: "4.0",
+  authors: [
+    {
+      name: "Informatika Media Team",
+      role: "Author"
+    }
+  ]
 };
 fs.writeFileSync(
   path.join(stagingDir, 'h5p.json'),
