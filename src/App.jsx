@@ -1383,7 +1383,7 @@ function Scene5Pemantik({ onPrev, onNext, onHome, sound }) {
 // =========================================================================
 function RamCardArt() {
   return (
-    <svg className="w-12 h-12 drop-shadow" viewBox="0 0 100 100">
+    <svg className="w-12 h-12" viewBox="0 0 100 100">
       <g transform="rotate(-15 50 50)">
         <rect x="15" y="30" width="70" height="40" rx="5" fill="#22c55e" stroke="#15803d" strokeWidth="4" />
         <rect x="25" y="42" width="10" height="16" rx="2" fill="#15803d" />
@@ -1398,7 +1398,7 @@ function RamCardArt() {
 
 function AntivirusCardArt() {
   return (
-    <svg className="w-12 h-12 drop-shadow" viewBox="0 0 100 100">
+    <svg className="w-12 h-12" viewBox="0 0 100 100">
       <path d="M50 12 L82 25 V50 C82 70 50 86 50 86 C50 86 18 70 18 50 V25 Z" fill="#60a5fa" stroke="#1d4ed8" strokeWidth="4" />
       <path d="M50 20 L74 30 V48 C74 64 50 78 50 78 C50 78 26 64 26 48 V30 Z" fill="#93c5fd" />
       <path d="M36 48 L46 58 L64 38" fill="none" stroke="#15803d" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
@@ -1408,7 +1408,7 @@ function AntivirusCardArt() {
 
 function ProgrammerCardArt() {
   return (
-    <svg className="w-12 h-12 drop-shadow" viewBox="0 0 100 100">
+    <svg className="w-12 h-12" viewBox="0 0 100 100">
       <circle cx="50" cy="30" r="14" fill="#fed7aa" stroke="#1e293b" strokeWidth="3" />
       <path d="M36 24 C36 14 64 14 64 24 Z" fill="#334155" />
       <path d="M24 78 C24 58 36 50 50 50 C64 50 76 58 76 78 Z" fill="#3b82f6" stroke="#1e293b" strokeWidth="3" />
@@ -1420,7 +1420,7 @@ function ProgrammerCardArt() {
 
 function MonitorCardArt() {
   return (
-    <svg className="w-12 h-12 drop-shadow" viewBox="0 0 100 100">
+    <svg className="w-12 h-12" viewBox="0 0 100 100">
       <rect x="15" y="16" width="70" height="50" rx="6" fill="#334155" stroke="#0f172a" strokeWidth="4" />
       <rect x="22" y="23" width="56" height="36" rx="3" fill="#0284c7" />
       <path d="M42 66 L36 80 H64 L58 66 Z" fill="#64748b" stroke="#0f172a" strokeWidth="3" />
@@ -1432,7 +1432,7 @@ function MonitorCardArt() {
 
 function WebBrowserCardArt() {
   return (
-    <svg className="w-12 h-12 drop-shadow" viewBox="0 0 100 100">
+    <svg className="w-12 h-12" viewBox="0 0 100 100">
       <circle cx="50" cy="45" r="28" fill="#ffffff" stroke="#1e293b" strokeWidth="4" />
       <circle cx="50" cy="45" r="12" fill="#3b82f6" stroke="#1e293b" strokeWidth="3" />
       <path d="M50 17 A28 28 0 0 1 74 31 L61 39 A12 12 0 0 0 50 33 Z" fill="#ef4444" />
@@ -1445,7 +1445,7 @@ function WebBrowserCardArt() {
 
 function TeknisiCardArt() {
   return (
-    <svg className="w-12 h-12 drop-shadow" viewBox="0 0 100 100">
+    <svg className="w-12 h-12" viewBox="0 0 100 100">
       <circle cx="45" cy="35" r="14" fill="#fed7aa" stroke="#1e293b" strokeWidth="3" />
       <path d="M30 28 C30 18 60 18 60 28 Z" fill="#eab308" stroke="#1e293b" strokeWidth="3" />
       <rect x="25" y="27" width="40" height="6" rx="3" fill="#f59e0b" />
@@ -1515,6 +1515,16 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
   const [submitted, setSubmitted] = useState(false);
   const [scoreInfo, setScoreInfo] = useState(null);
 
+  useEffect(() => {
+    const preventWindowDrag = (e) => e.preventDefault();
+    window.addEventListener("dragover", preventWindowDrag);
+    window.addEventListener("drop", preventWindowDrag);
+    return () => {
+      window.removeEventListener("dragover", preventWindowDrag);
+      window.removeEventListener("drop", preventWindowDrag);
+    };
+  }, []);
+
   const handleSelectItem = (item) => {
     if (submitted) return;
     setSelectedItem(selectedItem?.id === item.id ? null : item);
@@ -1534,6 +1544,7 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
       return nextBins;
     });
     setSelectedItem(null);
+    setDraggedItem(null);
     if (sound) playTone("click");
   };
 
@@ -1551,7 +1562,34 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
   const handleDragStart = (e, item) => {
     if (submitted) return;
     setDraggedItem(item);
-    e.dataTransfer.setData("text/plain", item.id);
+    setSelectedItem(item);
+    if (e.dataTransfer) {
+      e.dataTransfer.setData("text/plain", item.id);
+      e.dataTransfer.effectAllowed = "move";
+
+      // Mencegah glitch layar / kotak hitam di browser Chromium Windows
+      const ghost = document.createElement("div");
+      ghost.textContent = item.name;
+      ghost.style.position = "absolute";
+      ghost.style.top = "-9999px";
+      ghost.style.left = "-9999px";
+      ghost.style.padding = "6px 14px";
+      ghost.style.background = "#0284c7";
+      ghost.style.color = "#ffffff";
+      ghost.style.borderRadius = "12px";
+      ghost.style.fontWeight = "900";
+      ghost.style.fontSize = "12px";
+      ghost.style.boxShadow = "none";
+      ghost.style.border = "2px solid #ffffff";
+      ghost.style.pointerEvents = "none";
+      document.body.appendChild(ghost);
+      e.dataTransfer.setDragImage(ghost, 20, 20);
+      setTimeout(() => {
+        if (document.body.contains(ghost)) {
+          document.body.removeChild(ghost);
+        }
+      }, 0);
+    }
   };
 
   const handleDrop = (e, targetZoneKey) => {
@@ -1559,7 +1597,6 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
     if (submitted) return;
     if (draggedItem) {
       moveItemToZone(draggedItem, targetZoneKey);
-      setDraggedItem(null);
     } else if (selectedItem) {
       moveItemToZone(selectedItem, targetZoneKey);
     }
@@ -1648,6 +1685,7 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
                     key={id}
                     draggable={!submitted}
                     onDragStart={(e) => handleDragStart(e, item)}
+                    onDragEnd={() => setDraggedItem(null)}
                     onClick={() => handleSelectItem(item)}
                     className={`relative p-2 rounded-2xl border-2 transition duration-200 cursor-grab active:cursor-grabbing flex flex-col items-center justify-between min-h-[95px] select-none ${
                       isSelected
@@ -1655,13 +1693,15 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
                         : "bg-gradient-to-b from-[#e0f2fe] via-[#bae6fd] to-[#93c5fd] border-white shadow-md hover:scale-105 hover:shadow-lg"
                     }`}
                   >
-                    <Art />
-                    <span className="text-xs font-black text-slate-900 mt-1 font-display tracking-wide text-center">
-                      {name}
-                    </span>
+                    <div className="pointer-events-none flex flex-col items-center w-full">
+                      <Art />
+                      <span className="text-xs font-black text-slate-900 mt-1 font-display tracking-wide text-center">
+                        {name}
+                      </span>
+                    </div>
 
-                    {/* HAND POINTER CURSOR ICON AT BOTTOM RIGHT (PER GAMBAR USER) */}
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-white border border-slate-300 flex items-center justify-center shadow-xs">
+                    {/* HAND POINTER CURSOR ICON AT BOTTOM RIGHT */}
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-white border border-slate-300 flex items-center justify-center shadow-xs pointer-events-none">
                       <span className="text-[9px]">👆</span>
                     </div>
                   </div>
@@ -1670,6 +1710,13 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
             </div>
           )}
         </div>
+
+        {/* HELPER TEXT SAAT MEMILIH ITEM */}
+        {selectedItem && (
+          <div className="bg-yellow-100 border-2 border-yellow-400 px-3 py-1 rounded-xl text-center text-xs font-black text-yellow-950 font-display animate-pulse">
+            👆 Objek <strong>{selectedItem.name}</strong> dipilih! Klik pada salah satu Zona di bawah untuk meletakkannya.
+          </div>
+        )}
 
         {/* THREE ZONES (ZONA HARDWARE, ZONA SOFTWARE, ZONA BRAINWARE) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -1682,13 +1729,22 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={(e) => handleDrop(e, key)}
                 onClick={() => selectedItem && moveItemToZone(selectedItem, key)}
-                className={`rounded-2xl border-3 border-[#bae6fd] bg-[#e0f2fe] p-3 shadow-md flex flex-col justify-between min-h-[140px] transition ${
-                  isTargeted ? "cursor-pointer hover:border-cyan-500 hover:bg-cyan-100/70" : ""
+                className={`rounded-2xl border-3 p-3 shadow-md flex flex-col justify-between min-h-[140px] transition ${
+                  isTargeted
+                    ? "border-cyan-500 bg-cyan-100/80 ring-4 ring-cyan-300/60 cursor-pointer scale-[1.01]"
+                    : "border-[#bae6fd] bg-[#e0f2fe]"
                 }`}
               >
-                <h3 className="text-sm sm:text-base font-black text-slate-900 text-center mb-1.5 font-display">
-                  {title}
-                </h3>
+                <div className="flex items-center justify-between mb-1.5">
+                  <h3 className="text-sm sm:text-base font-black text-slate-900 font-display">
+                    {title}
+                  </h3>
+                  {isTargeted && (
+                    <span className="text-[10px] font-black text-cyan-800 bg-white/95 px-2 py-0.5 rounded-full border border-cyan-400 shadow-xs animate-bounce-gentle">
+                      📥 Klik letakkan
+                    </span>
+                  )}
+                </div>
 
                 {/* DASHED RECTANGLE INNER DROP BOX */}
                 <div className="flex-1 rounded-xl border-2 border-dashed border-slate-400 bg-white/60 p-2 flex flex-col items-center justify-center min-h-[85px] relative overflow-hidden">
