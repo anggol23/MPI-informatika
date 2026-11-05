@@ -1511,19 +1511,9 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
   const [pool, setPool] = useState(initialItems);
   const [bins, setBins] = useState({ hardware: [], software: [], brainware: [] });
   const [selectedItem, setSelectedItem] = useState(null);
-  const [draggedItem, setDraggedItem] = useState(null);
+  const [dragState, setDragState] = useState(null); // { item, x, y, startX, startY, isDragging }
   const [submitted, setSubmitted] = useState(false);
   const [scoreInfo, setScoreInfo] = useState(null);
-
-  useEffect(() => {
-    const preventWindowDrag = (e) => e.preventDefault();
-    window.addEventListener("dragover", preventWindowDrag);
-    window.addEventListener("drop", preventWindowDrag);
-    return () => {
-      window.removeEventListener("dragover", preventWindowDrag);
-      window.removeEventListener("drop", preventWindowDrag);
-    };
-  }, []);
 
   const handleSelectItem = (item) => {
     if (submitted) return;
@@ -1544,7 +1534,7 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
       return nextBins;
     });
     setSelectedItem(null);
-    setDraggedItem(null);
+    setDragState(null);
     if (sound) playTone("click");
   };
 
@@ -1559,48 +1549,55 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
     if (sound) playTone("click");
   };
 
-  const handleDragStart = (e, item) => {
+  const handleItemPointerDown = (e, item) => {
     if (submitted) return;
-    setDraggedItem(item);
-    setSelectedItem(item);
-    if (e.dataTransfer) {
-      e.dataTransfer.setData("text/plain", item.id);
-      e.dataTransfer.effectAllowed = "move";
+    if (e.button !== undefined && e.button !== 0) return;
+    setDragState({
+      item,
+      x: e.clientX,
+      y: e.clientY,
+      startX: e.clientX,
+      startY: e.clientY,
+      isDragging: false,
+    });
+  };
 
-      // Mencegah glitch layar / kotak hitam di browser Chromium Windows
-      const ghost = document.createElement("div");
-      ghost.textContent = item.name;
-      ghost.style.position = "absolute";
-      ghost.style.top = "-9999px";
-      ghost.style.left = "-9999px";
-      ghost.style.padding = "6px 14px";
-      ghost.style.background = "#0284c7";
-      ghost.style.color = "#ffffff";
-      ghost.style.borderRadius = "12px";
-      ghost.style.fontWeight = "900";
-      ghost.style.fontSize = "12px";
-      ghost.style.boxShadow = "none";
-      ghost.style.border = "2px solid #ffffff";
-      ghost.style.pointerEvents = "none";
-      document.body.appendChild(ghost);
-      e.dataTransfer.setDragImage(ghost, 20, 20);
-      setTimeout(() => {
-        if (document.body.contains(ghost)) {
-          document.body.removeChild(ghost);
+  useEffect(() => {
+    if (!dragState) return;
+
+    const handlePointerMove = (e) => {
+      const dist = Math.hypot(e.clientX - dragState.startX, e.clientY - dragState.startY);
+      if (dist > 8 || dragState.isDragging) {
+        setDragState((prev) => (prev ? { ...prev, x: e.clientX, y: e.clientY, isDragging: true } : null));
+      }
+    };
+
+    const handlePointerUp = (e) => {
+      if (!dragState) return;
+
+      if (dragState.isDragging) {
+        const el = document.elementFromPoint(e.clientX, e.clientY);
+        const zoneEl = el ? el.closest("[data-zone-key]") : null;
+        if (zoneEl) {
+          const zoneKey = zoneEl.getAttribute("data-zone-key");
+          if (zoneKey) {
+            moveItemToZone(dragState.item, zoneKey);
+          }
         }
-      }, 0);
-    }
-  };
+      } else {
+        handleSelectItem(dragState.item);
+      }
 
-  const handleDrop = (e, targetZoneKey) => {
-    e.preventDefault();
-    if (submitted) return;
-    if (draggedItem) {
-      moveItemToZone(draggedItem, targetZoneKey);
-    } else if (selectedItem) {
-      moveItemToZone(selectedItem, targetZoneKey);
-    }
-  };
+      setDragState(null);
+    };
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+    };
+  }, [dragState]);
 
   const handleSubmit = () => {
     let correctCount = 0;
@@ -1623,7 +1620,7 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
     setPool(initialItems);
     setBins({ hardware: [], software: [], brainware: [] });
     setSelectedItem(null);
-    setDraggedItem(null);
+    setDragState(null);
     setSubmitted(false);
     setScoreInfo(null);
     if (sound) playTone("click");
@@ -1636,7 +1633,7 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
   ];
 
   return (
-    <div className="scene-card-wrapper relative z-10 flex flex-col justify-between h-full max-h-full overflow-hidden">
+    <div className="scene-card-wrapper relative z-10 flex flex-col justify-between h-full max-h-full overflow-hidden select-none">
       
       {/* HEADER TOP BAR WITH LOGOS AND TITLE BADGE */}
       <div className="relative flex items-center justify-between mb-2 shrink-0">
@@ -1658,7 +1655,7 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
         {/* RESET BUTTON */}
         <button
           onClick={handleReset}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-100 border-2 border-cyan-400 text-cyan-800 text-xs font-black shadow-sm hover:bg-cyan-200 transition font-display"
+          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-100 border-2 border-cyan-400 text-cyan-800 text-xs font-black shadow-sm hover:bg-cyan-200 transition font-display cursor-pointer"
         >
           <RotateCcw className="w-3.5 h-3.5" />
           <span>Reset</span>
@@ -1683,11 +1680,8 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
                 return (
                   <div
                     key={id}
-                    draggable={!submitted}
-                    onDragStart={(e) => handleDragStart(e, item)}
-                    onDragEnd={() => setDraggedItem(null)}
-                    onClick={() => handleSelectItem(item)}
-                    className={`relative p-2 rounded-2xl border-2 transition duration-200 cursor-grab active:cursor-grabbing flex flex-col items-center justify-between min-h-[95px] select-none ${
+                    onPointerDown={(e) => handleItemPointerDown(e, item)}
+                    className={`relative p-2 rounded-2xl border-2 transition-all duration-150 cursor-pointer active:scale-95 flex flex-col items-center justify-between min-h-[95px] select-none touch-none ${
                       isSelected
                         ? "bg-gradient-to-b from-sky-200 via-sky-300 to-cyan-400 border-yellow-400 scale-105 shadow-xl ring-4 ring-yellow-300/60"
                         : "bg-gradient-to-b from-[#e0f2fe] via-[#bae6fd] to-[#93c5fd] border-white shadow-md hover:scale-105 hover:shadow-lg"
@@ -1713,8 +1707,9 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
 
         {/* HELPER TEXT SAAT MEMILIH ITEM */}
         {selectedItem && (
-          <div className="bg-yellow-100 border-2 border-yellow-400 px-3 py-1 rounded-xl text-center text-xs font-black text-yellow-950 font-display animate-pulse">
-            👆 Objek <strong>{selectedItem.name}</strong> dipilih! Klik pada salah satu Zona di bawah untuk meletakkannya.
+          <div className="bg-yellow-100 border-2 border-yellow-400 px-3 py-1.5 rounded-xl text-center text-xs font-black text-yellow-950 font-display animate-pulse flex items-center justify-center gap-2">
+            <span>👆</span>
+            <span>Objek <strong>{selectedItem.name}</strong> dipilih! Klik pada salah satu Zona di bawah untuk meletakkannya.</span>
           </div>
         )}
 
@@ -1726,12 +1721,11 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
             return (
               <div
                 key={key}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => handleDrop(e, key)}
+                data-zone-key={key}
                 onClick={() => selectedItem && moveItemToZone(selectedItem, key)}
-                className={`rounded-2xl border-3 p-3 shadow-md flex flex-col justify-between min-h-[140px] transition ${
+                className={`rounded-2xl border-3 p-3 shadow-md flex flex-col justify-between min-h-[140px] transition-all duration-200 ${
                   isTargeted
-                    ? "border-cyan-500 bg-cyan-100/80 ring-4 ring-cyan-300/60 cursor-pointer scale-[1.01]"
+                    ? "border-cyan-500 bg-cyan-100/90 ring-4 ring-cyan-400/60 cursor-pointer scale-[1.01]"
                     : "border-[#bae6fd] bg-[#e0f2fe]"
                 }`}
               >
@@ -1740,16 +1734,16 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
                     {title}
                   </h3>
                   {isTargeted && (
-                    <span className="text-[10px] font-black text-cyan-800 bg-white/95 px-2 py-0.5 rounded-full border border-cyan-400 shadow-xs animate-bounce-gentle">
+                    <span className="text-[10px] font-black text-cyan-800 bg-white/95 px-2.5 py-0.5 rounded-full border border-cyan-400 shadow-xs animate-bounce-gentle">
                       📥 Klik letakkan
                     </span>
                   )}
                 </div>
 
                 {/* DASHED RECTANGLE INNER DROP BOX */}
-                <div className="flex-1 rounded-xl border-2 border-dashed border-slate-400 bg-white/60 p-2 flex flex-col items-center justify-center min-h-[85px] relative overflow-hidden">
+                <div className="flex-1 rounded-xl border-2 border-dashed border-slate-400 bg-white/60 p-2 flex flex-col items-center justify-center min-h-[85px] relative overflow-hidden pointer-events-auto">
                   {items.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-1">
+                    <div className="flex flex-col items-center justify-center py-1 pointer-events-none">
                       <IconComp />
                     </div>
                   ) : (
@@ -1763,7 +1757,7 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
                               e.stopPropagation();
                               moveItemToPool(it);
                             }}
-                            className={`flex items-center gap-1 px-2.5 py-1 rounded-xl border-2 shadow-xs cursor-pointer transition hover:scale-105 ${
+                            className={`flex items-center gap-1 px-2.5 py-1 rounded-xl border-2 shadow-xs cursor-pointer transition hover:scale-105 active:scale-95 ${
                               submitted
                                 ? isCorrect
                                   ? "bg-emerald-100 border-emerald-500 text-emerald-900"
@@ -1808,14 +1802,14 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
         <div className="flex flex-col items-center justify-center my-1 relative z-10">
           <button
             onClick={handleSubmit}
-            className="px-10 sm:px-14 py-2.5 rounded-full bg-gradient-to-r from-[#0284c7] via-[#0ea5e9] to-[#0284c7] border-3 border-white text-white font-black text-base sm:text-lg tracking-wider shadow-xl hover:scale-105 active:scale-95 transition font-display uppercase"
+            className="px-10 sm:px-14 py-2.5 rounded-full bg-gradient-to-r from-[#0284c7] via-[#0ea5e9] to-[#0284c7] border-3 border-white text-white font-black text-base sm:text-lg tracking-wider shadow-xl hover:scale-105 active:scale-95 transition font-display uppercase cursor-pointer"
           >
             SUBMIT JAWABAN
           </button>
 
           <button
             onClick={onHome}
-            className="mt-1 text-[11px] font-black text-slate-600 hover:text-cyan-800 underline uppercase tracking-widest font-display"
+            className="mt-1 text-[11px] font-black text-slate-600 hover:text-cyan-800 underline uppercase tracking-widest font-display cursor-pointer"
           >
             KEMBALI KE MENU
           </button>
@@ -1832,6 +1826,24 @@ function Scene7Klasifikasi({ onPrev, onNext, onHome, sound }) {
           </div>
         </div>
       </div>
+
+      {/* FLOATING DRAGGED CHIP (TERAPUNG MENGIKUTI KURSOR JIKA DI-DRAG) */}
+      {dragState?.isDragging && (
+        <div
+          style={{
+            position: "fixed",
+            left: dragState.x,
+            top: dragState.y,
+            transform: "translate(-50%, -50%)",
+            pointerEvents: "none",
+            zIndex: 9999,
+          }}
+          className="px-4 py-2 rounded-2xl bg-gradient-to-r from-[#0284c7] to-[#0ea5e9] border-2 border-white text-white shadow-2xl flex items-center gap-2 text-xs font-black font-display"
+        >
+          <span>📦</span>
+          <span>{dragState.item.name}</span>
+        </div>
+      )}
 
       {/* NAVIGASI BAWAH SIRKUIT (SEBELUMNYA • BERANDA • LANJUT) */}
       <BottomNav onPrev={onPrev} onHome={onHome} onNext={onNext} />
