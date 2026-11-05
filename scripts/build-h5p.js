@@ -66,6 +66,7 @@ fs.mkdirSync(libDir, { recursive: true });
 // 5a. Buat library.json
 const libraryManifest = {
   title: "Media Pembelajaran Interaktif Informatika",
+  machineName: "H5P.MediaInteraktif",
   description: "Media Pembelajaran Interaktif Materi Sistem Komputer Berbasis Kurikulum Merdeka",
   majorVersion: 1,
   minorVersion: 0,
@@ -94,7 +95,14 @@ fs.writeFileSync(
   'utf-8'
 );
 
-// 5b. Buat wrapper.css
+// 5b. Buat semantics.json (wajib ada untuk validator H5P / Lumi)
+fs.writeFileSync(
+  path.join(libDir, 'semantics.json'),
+  JSON.stringify([], null, 2),
+  'utf-8'
+);
+
+// 5c. Buat wrapper.css
 const wrapperCss = `
 .h5p-media-interaktif-container {
   width: 100%;
@@ -160,9 +168,9 @@ if (fs.existsSync(outputH5P)) {
 }
 
 try {
-  // Gunakan tar (bsdtar bawaan Windows/Linux/macOS yang mendukung zip)
+  // Gunakan tar dengan format eksplisit ZIP (menghasilkan header PK 50-4B-03-04 yang valid)
   execSync(
-    `tar -a -c -f "${outputH5P}" -C "${stagingDir}" h5p.json content H5P.MediaInteraktif-1.0`,
+    `tar --format zip -c -f "${outputH5P}" -C "${stagingDir}" h5p.json content H5P.MediaInteraktif-1.0`,
     { stdio: 'inherit', cwd: rootDir }
   );
 } catch (err) {
@@ -191,3 +199,4 @@ if (fs.existsSync(outputH5P)) {
   console.error('❌ Gagal membuat file media-informatika.h5p.');
   process.exit(1);
 }
+
